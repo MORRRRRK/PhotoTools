@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.log
+
+# Build output
+build/
+build_installer/
+dist/
+assets/
+*.exe
+*.pkg
+*.zip
+*.pyz
+
+# Local user data
+config.json
+eval_history.json
+error.log
+
+# Generated photo gallery site
+photo_gallery/site/photos/
+photo_gallery/site/thumbs/
+photo_gallery/site/photos.json
+
+# Personal photos and media
+陈大可照片/
+新建文件夹/
+tcl/

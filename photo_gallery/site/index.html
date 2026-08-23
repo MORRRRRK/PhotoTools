@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="陈大可摄影作品">
+  <meta name="theme-color" content="#0f0f10">
+  <title>陈大可摄影作品</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <div>
+      <h1>陈大可摄影作品</h1>
+      <p class="masthead-sub">光影记录</p>
+    </div>
+    <div class="count-pill"><span id="photo-count">0</span> 张照片</div>
+  </header>
+
+  <nav class="albums" id="albums" aria-label="相册筛选">
+    <button class="album-pill is-active" type="button" data-album="all">全部</button>
+  </nav>
+
+  <main id="gallery" class="gallery" aria-live="polite"></main>
+  <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+
+  <footer class="site-footer">© 2026 陈大可</footer>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lb-close" id="lb-close" type="button" aria-label="关闭">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button class="lb-nav lb-prev" id="lb-prev" type="button" aria-label="上一张">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <figure class="lb-stage">
+      <img id="lb-image" src="" alt="">
+      <figcaption id="lb-caption" class="lb-caption"></figcaption>
+    </figure>
+    <button class="lb-nav lb-next" id="lb-next" type="button" aria-label="下一张">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
