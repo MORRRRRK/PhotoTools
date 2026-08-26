@@ -89,11 +89,22 @@ class AutoColorEngine:
         blob = np.transpose(rgb, (2, 0, 1))[np.newaxis]
         out = session.run(None, {input_name: blob})[0][0]
         out = np.transpose(out, (1, 2, 0))
-        out = np.clip(out * 255.0, 0, 255).astype(np.uint8)
+        # 模型输出可能是 [0,1] 或 [0,255] 两种约定，按实际数值范围自动判断。
+        if out.size and out.max() <= 1.05:
+            out = np.clip(out * 255.0, 0, 255).astype(np.uint8)
+        else:
+            out = np.clip(out, 0, 255).astype(np.uint8)
         out_bgr = cv2.cvtColor(out, cv2.COLOR_RGB2BGR)
         if h_pad or w_pad:
             out_bgr = out_bgr[:h, :w]
         return out_bgr
+
+    @staticmethod
+    def _sci_blend_alpha(img_bgr: np.ndarray) -> float:
+        """按画面平均亮度计算 SCI 混合强度，亮图少提亮、暗图多提亮。"""
+        hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+        mean_v = float(hsv[..., 2].mean()) / 255.0
+        return float(np.clip(1.0 - (mean_v - 0.25) / 0.45, 0.0, 1.0))
 
     @staticmethod
     def _traditional_enhance(img_bgr: np.ndarray) -> np.ndarray:
@@ -122,7 +133,10 @@ class AutoColorEngine:
             result = cv2.resize(result, (int(w * scale), int(h * scale)),
                                 interpolation=cv2.INTER_AREA)
         if use_sci and self.sci_session:
-            result = self._run_session(self.sci_session, self.sci_input, result)
+            sci_in = result
+            sci_out = self._run_session(self.sci_session, self.sci_input, sci_in)
+            alpha = self._sci_blend_alpha(sci_in)
+            result = cv2.addWeighted(sci_in, 1.0 - alpha, sci_out, alpha, 0)
         elif use_sci or use_hdrnet:
             result = self._traditional_enhance(result)
         if use_hdrnet and self.hdrnet_session:

@@ -206,7 +206,7 @@ class MainWindow(QMainWindow):
             self,
             "关于 PhotoTools V12.0",
             "PhotoTools V12.0 摄影素材管理工具箱\n\n"
-            "专业摄影工作站风格 · AI 自动调色 · 3D LUT 电影风格")
+            "专业摄影工作站风格 · AI 自动调色（已内置 SCI 曝光校正模型）· 3D LUT 电影风格")
 
 
 def run() -> int:
