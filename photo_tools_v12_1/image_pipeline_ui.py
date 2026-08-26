@@ -235,6 +235,7 @@ class ImagePipelinePage(QWidget):
         self.preview_worker = None
         self.cancel_event = threading.Event()
         self.preview_img_size = (1, 1)
+        self._output_map = {}
         self._debounce = QTimer(self)
         self._debounce.setSingleShot(True)
         self._debounce.setInterval(200)
@@ -577,6 +578,7 @@ class ImagePipelinePage(QWidget):
                 self._on_module_clicked(text)
 
     def _on_config_changed(self, *_args):
+        self._output_map = {}
         self._debounce.start()
 
     def _on_manual_crop(self, crop):
@@ -826,7 +828,8 @@ class ImagePipelinePage(QWidget):
         self.progress.setValue(100)
         ok = result.get("ok", 0)
         failed = result.get("failed", 0)
-        self.status_lb.setText(f"完成：成功 {ok}，失败 {failed}")
+        self._output_map = result.get("outputs", {}) or {}
+        self.status_lb.setText(f"完成：成功 {ok}，失败 {failed}（已生成版本文件，不覆盖）")
         if result.get("error"):
             QMessageBox.warning(self, "处理失败", result["error"])
         elif failed:
@@ -841,16 +844,48 @@ class ImagePipelinePage(QWidget):
         else:
             QMessageBox.information(
                 self, "完成", f"成功 {ok} 张\n输出目录：{result.get('output_dir', '')}")
+        self._refresh_preview()
 
     def _refresh_preview(self):
         if not hasattr(self, "list") or self.list.currentRow() < 0:
             return
         path = self.list.currentItem().data(Qt.UserRole)
+        out_path = self._output_map.get(path)
+        if out_path and os.path.exists(out_path):
+            self._show_generated_pair(path, out_path)
+            return
         self._ensure_pipeline()
         config = self._current_config()
         self.preview_worker = PreviewWorker(self.pipeline, path, config, self)
         self.preview_worker.finished_preview.connect(self._on_preview)
         self.preview_worker.start()
+
+    def _show_generated_pair(self, path, out_path):
+        try:
+            from .image_pipeline import load_image_bgr
+            import cv2
+            orig = load_image_bgr(path)
+            generated = load_image_bgr(out_path)
+
+            def downscale(img):
+                h, w = img.shape[:2]
+                if max(h, w) > 1280:
+                    scale = 1280 / max(h, w)
+                    img = cv2.resize(img, (int(w * scale), int(h * scale)),
+                                     interpolation=cv2.INTER_AREA)
+                return img
+
+            orig = downscale(orig)
+            generated = downscale(generated)
+            self.preview_img_size = (orig.shape[1], orig.shape[0])
+            orig_pix = self._to_pixmap(orig)
+            result_pix = self._to_pixmap(generated)
+            self.compare.set_images(orig_pix, result_pix)
+            self.crop_preview.set_content(result_pix, (orig.shape[1], orig.shape[0]),
+                                          None, False)
+            self.status_lb.setText(f"原片 + 本次生成：{os.path.basename(out_path)}")
+        except Exception as e:
+            self.status_lb.setText(f"加载生成照片失败：{e}")
 
     def _on_preview(self, data):
         if data.get("error"):

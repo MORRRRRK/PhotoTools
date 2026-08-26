@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import re
 import threading
 import time
 from dataclasses import asdict, dataclass, field
@@ -228,6 +229,18 @@ def load_image_bgr(path: str) -> np.ndarray:
         if bgr is None:
             raise ValueError("无法读取图片")
         return bgr
+
+
+def _next_output_path(output_dir: str, stem: str) -> str:
+    """返回不覆盖已有文件的版本化输出路径（name_enhanced-1.png, -2.png ...）。"""
+    max_version = 0
+    prefix = stem + "_enhanced-"
+    for name in os.listdir(output_dir):
+        if name.lower().endswith(".png") and name.lower().startswith(prefix.lower()):
+            match = re.search(r"-(\d+)\.png$", name, re.IGNORECASE)
+            if match:
+                max_version = max(max_version, int(match.group(1)))
+    return os.path.join(output_dir, f"{prefix}{max_version + 1}.png")
 
 
 class ImagePipeline:
@@ -501,6 +514,7 @@ class ImagePipeline:
                     "output_dir": output_dir, "error": str(e)}
         ok = failed = 0
         failed_files = []
+        outputs = {}
         total = len(paths)
         for index, path in enumerate(paths):
             if cancel_event.is_set():
@@ -512,13 +526,13 @@ class ImagePipeline:
                 img = load_image_bgr(path)
                 exif = read_exif_info(path)
                 result = self.process(img, config, exif)
-                out_name = (os.path.splitext(os.path.basename(path))[0]
-                            + "_enhanced.jpg")
-                out_path = os.path.join(output_dir, out_name)
+                stem = os.path.splitext(os.path.basename(path))[0]
+                out_path = _next_output_path(output_dir, stem)
                 if not imwrite_unicode(out_path, result.image,
-                                       [cv2.IMWRITE_JPEG_QUALITY, 95]):
+                                       [cv2.IMWRITE_PNG_COMPRESSION, 3]):
                     raise ValueError("写入输出文件失败")
                 ok += 1
+                outputs[path] = out_path
             except Exception as e:
                 failed += 1
                 failed_files.append((path, str(e)))
@@ -527,4 +541,4 @@ class ImagePipeline:
                 progress_cb({"type": "done", "index": index, "total": total,
                              "path": path, "ok": ok, "failed": failed})
         return {"ok": ok, "failed": failed, "failed_files": failed_files,
-                "output_dir": output_dir, "error": ""}
+                "output_dir": output_dir, "error": "", "outputs": outputs}
