@@ -16,6 +16,19 @@ def build():
     icon_path = root / "icon.ico"
     ffmpeg_path = root / "assets" / "ffmpeg.exe"
 
+    # 排除运行时自带的第三方原生库目录，避免 PyInstaller 误打包 PATH 里的
+    # icuuc.dll / icudt*.dll 等，导致 Qt6Core 加载时提示“找不到指定的程序”。
+    env = os.environ.copy()
+    keep = []
+    for p in env.get("PATH", "").split(os.pathsep):
+        low = p.lower()
+        if not p:
+            continue
+        if "dependencies" in low and "native" in low:
+            continue
+        keep.append(p)
+    env["PATH"] = os.pathsep.join(keep)
+
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--paths", str(project_root),
@@ -77,7 +90,7 @@ def build():
     cmd.append(str(main_script))
 
     print(f"[BUILD] 打包中: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=str(root))
+    result = subprocess.run(cmd, cwd=str(root), env=env)
     if result.returncode == 0:
         print(f"[BUILD] 打包成功: {root / 'dist' / 'PhotoTools.exe'}")
     else:
