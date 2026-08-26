@@ -22,7 +22,7 @@ try:
 except OSError:
     pass
 try:
-    from photo_tools_v12.main import main
+    from photo_tools_v12_1.main import main
     main()
 except Exception:
     with open(_log_path, "w", encoding="utf-8") as f:
