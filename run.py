@@ -1,8 +1,15 @@
-import sys, os, subprocess
+"""PhotoTools 启动器：动态查找 Python 解释器，无硬编码用户路径。"""
+
+import glob
+import os
+import shutil
+import subprocess
+import sys
+
 root = os.path.dirname(os.path.abspath(__file__))
 LOG = os.path.join(root, "error.log")
-
 app_script = os.path.join(root, "_app.py")
+
 if not os.path.exists(app_script):
     with open(app_script, "w", encoding="utf-8") as f:
         f.write("""
@@ -15,7 +22,7 @@ try:
 except OSError:
     pass
 try:
-    from photo_tools_v9_2.main import main
+    from photo_tools_v11.main import main
     main()
 except Exception:
     with open(_log_path, "w", encoding="utf-8") as f:
@@ -23,26 +30,52 @@ except Exception:
         f.write(f"Python: {sys.executable}\\n")
 """)
 
-codex_sp = r"C:\Users\49212\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\site-packages"
-tcl_dir = r"C:\Users\49212\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\tcl"
-env = os.environ.copy()
-env["PYTHONPATH"] = codex_sp
-env["TCL_LIBRARY"] = os.path.join(tcl_dir, "tcl8.6")
-env["TK_LIBRARY"] = os.path.join(tcl_dir, "tk8.6")
 
-candidates = [
-    r"C:\Users\49212\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\pythonw.exe",
-    r"C:\Users\49212\AppData\Local\Microsoft\WindowsApps\pythonw.exe",
-    r"C:\Users\49212\AppData\Local\Microsoft\WindowsApps\python.exe",
-]
-for exe in candidates:
-    if os.path.exists(exe):
+def find_pythonw() -> list:
+    candidates = []
+    exe = getattr(sys, "executable", "")
+    if exe:
+        candidates.append(exe)
+        if exe.lower().endswith("python.exe"):
+            pw = exe[:-4] + "w.exe"
+            if os.path.exists(pw):
+                candidates.insert(0, pw)
+    for name in ("pythonw", "python"):
+        found = shutil.which(name)
+        if found:
+            candidates.append(found)
+    localappdata = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+    patterns = [
+        os.path.join(localappdata, "Programs", "Python", "Python3*", "pythonw.exe"),
+        os.path.join(localappdata, "Programs", "Python", "Python3*", "python.exe"),
+        os.path.join(localappdata, "Microsoft", "WindowsApps", "pythonw.exe"),
+        os.path.join(localappdata, "Microsoft", "WindowsApps", "python.exe"),
+    ]
+    for pattern in patterns:
+        candidates.extend(sorted(glob.glob(pattern)))
+    seen = set()
+    result = []
+    for p in candidates:
+        key = os.path.normcase(os.path.abspath(p))
+        if p and os.path.exists(p) and key not in seen:
+            seen.add(key)
+            result.append(p)
+    return result
+
+
+def main():
+    env = os.environ.copy()
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    for exe in find_pythonw():
         try:
             subprocess.Popen([exe, app_script], env=env)
-            sys.exit(0)
+            return 0
         except Exception:
-            pass
+            continue
+    with open(LOG, "w", encoding="utf-8") as f:
+        f.write("All launch attempts failed")
+    return 1
 
-with open(LOG, "w", encoding="utf-8") as f:
-    f.write("All launch attempts failed")
-input("Press Enter...")
+
+if __name__ == "__main__":
+    sys.exit(main())
