@@ -1,4 +1,4 @@
-# 摄影素材管理工具箱 (PhotoTools V11.0)
+# 摄影素材管理工具箱 (PhotoTools V12.0)
 
 一站式处理相机与手机素材：清理残留 RAW/PNG、评估照片/视频质量、为高规格视频生成低码率代理、生成延时摄影，并新增手机动态照片（Live Photo）提取。
 
@@ -51,8 +51,9 @@
 - V9.1：独立安装器 PhotoToolsSetup.exe（自定义安装路径）与独立卸载器 PhotoToolsUninstall.exe（保留/删除缓存），缓存改存安装目录
 - V9.2：新增“RAW/PNG 转 JPG”，支持主流相机 RAW、PNG、TIFF 批量转换并显示生成位置
 - V10.0：全新 Qt 界面，左侧导航 + 中央堆叠页面 + 右侧可停靠面板，深色摄影蓝主题
-- V11.0：重设计照片质量评估页，专业摄影工作站风格，可折叠侧边栏 + 评分概览 + 信息面板
-- V11.0：重构完善：动态启动器、按目录孤儿匹配、.mov 支持、JPG 质量可调、BRISQUE AI 评分、统一日志、可选 pyvips/ExifTool
+- V12.0：重设计照片质量评估页，专业摄影工作站风格，可折叠侧边栏 + 评分概览 + 信息面板
+- V12.0：重构完善：动态启动器、按目录孤儿匹配、.mov 支持、JPG 质量可调、BRISQUE AI 评分、统一日志、可选 pyvips/ExifTool
+- V12.0：新增“AI 自动调色”：SCI/HDRNet ONNX 可选推理 + 3D LUT 电影预设 + 传统算法降级
 
 ### 6. 设置
 
@@ -63,7 +64,7 @@
 ## 运行
 
 ```bash
-pip install -r photo_tools_v11/requirements.txt
+pip install -r photo_tools_v12/requirements.txt
 python run.py
 ```
 
@@ -72,14 +73,14 @@ python run.py
 ## 打包为 exe
 
 ```bash
-python photo_tools_v11/build.py
-# 输出: photo_tools_v11/dist/PhotoTools.exe
+python photo_tools_v12/build.py
+# 输出: photo_tools_v12/dist/PhotoTools.exe
 ```
 
 ## 项目结构
 
 ```
-photo_tools_v11/
+photo_tools_v12/
 ├── __init__.py           # 包信息
 ├── main.py               # GUI 主界面
 ├── installer.py          # 安装状态识别与安装/卸载器定位
@@ -89,7 +90,12 @@ photo_tools_v11/
 ├── qt_main.py            # Qt 主窗口（左侧导航 + 堆叠页面 + Dock）
 ├── qt_pages.py           # Qt 功能页面
 ├── qt_widgets.py         # Qt 自定义控件（照片卡片 / 环形评分 / 折叠面板 / Toast）
-├── quality_page.py       # V11.0 重设计照片质量评估页
+├── quality_page.py       # V12.0 重设计照片质量评估页
+├── auto_color.py         # AI 自动调色引擎
+├── auto_color_ui.py      # AI 自动调色界面
+├── lut_loader.py         # 3D LUT 解析与应用
+├── luts/                 # 内置电影/胶片风格 LUT
+├── models/               # ONNX 模型目录（可选）
 ├── style.qss             # 深色摄影蓝主题样式表
 ├── convert.py            # RAW/PNG 快速转 JPG 引擎
 ├── convert_ui.py         # RAW/PNG 转 JPG 界面
