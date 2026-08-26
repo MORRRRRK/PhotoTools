@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .auto_color import SUPPORTED_EXTS, AutoColorEngine
+from .auto_color import SUPPORTED_EXTS, AutoColorEngine, imread_unicode
 
 
 class CompareView(QWidget):
@@ -268,7 +268,7 @@ class AutoColorPage(QWidget):
     def _do_preview(self, path, mode, params, engine):
         try:
             import cv2
-            img = cv2.imread(path)
+            img = imread_unicode(path)
             if img is None:
                 return
             h, w = img.shape[:2]
@@ -351,6 +351,13 @@ class AutoColorPage(QWidget):
         if result.get("error"):
             QMessageBox.warning(self, "调色失败", result["error"])
         elif failed:
-            QMessageBox.warning(self, "部分失败", f"成功 {ok}，失败 {failed}\n输出目录：{result.get('output_dir', '')}")
+            reasons = []
+            for path, reason in result.get("failed_files", [])[:5]:
+                reasons.append(f"{os.path.basename(str(path))}: {reason}")
+            detail = "\n".join(reasons) if reasons else "失败原因未记录"
+            QMessageBox.warning(
+                self, "部分失败",
+                f"成功 {ok}，失败 {failed}\n"
+                f"失败示例：\n{detail}\n\n输出目录：{result.get('output_dir', '')}")
         else:
             QMessageBox.information(self, "完成", f"成功 {ok} 张\n输出目录：{result.get('output_dir', '')}")

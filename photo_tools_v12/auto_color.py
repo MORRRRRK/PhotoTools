@@ -16,6 +16,24 @@ SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
 MAX_INFER_SIDE = 1920
 
 
+def imread_unicode(path: str) -> Optional[np.ndarray]:
+    """读取图片，兼容中文路径（cv2.imread 在 Windows 下不支持非 ASCII 路径）。"""
+    data = np.fromfile(path, dtype=np.uint8)
+    if data.size == 0:
+        return None
+    return cv2.imdecode(data, cv2.IMREAD_COLOR)
+
+
+def imwrite_unicode(path: str, img: np.ndarray, params=None) -> bool:
+    """写入图片，兼容中文路径（cv2.imwrite 在 Windows 下不支持非 ASCII 路径）。"""
+    ext = os.path.splitext(path)[1] or ".jpg"
+    ok, buf = cv2.imencode(ext, img, params or [])
+    if not ok:
+        return False
+    buf.tofile(path)
+    return True
+
+
 def _load_ort_session(path: str, use_gpu: bool = False):
     try:
         import onnxruntime as ort
@@ -169,14 +187,15 @@ class AutoColorEngine:
             if progress_cb:
                 progress_cb({"type": "start", "index": index, "total": total, "path": path})
             try:
-                img = cv2.imread(path)
+                img = imread_unicode(path)
                 if img is None:
                     raise ValueError("无法读取图片")
                 result = self.process_image(img, use_sci, use_hdrnet,
                                             lut_name, lut_intensity)
                 out_name = os.path.splitext(os.path.basename(path))[0] + "_autocolor.jpg"
                 out_path = os.path.join(output_dir, out_name)
-                cv2.imwrite(out_path, result, [cv2.IMWRITE_JPEG_QUALITY, 95])
+                if not imwrite_unicode(out_path, result, [cv2.IMWRITE_JPEG_QUALITY, 95]):
+                    raise ValueError("写入输出文件失败")
                 ok += 1
             except Exception as e:
                 failed += 1
