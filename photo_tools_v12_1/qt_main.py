@@ -26,12 +26,12 @@ from .qt_pages import (
     DynamicPage,
     GalleryPage,
     ProxyPage,
-    ScannerPage,
     SettingsPage,
     TimelapsePage,
 )
 from .quality_page import QualityPageV101
 from .image_pipeline_ui import ImagePipelinePage
+from .scanner_ui import ScannerPage
 from .qt_widgets import DropOverlay
 
 

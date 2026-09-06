@@ -45,6 +45,7 @@ def build():
         "--hidden-import", "photo_tools_v12_1.qt_widgets",
         "--hidden-import", "photo_tools_v12_1.quality_page",
         "--hidden-import", "photo_tools_v12_1.scanner",
+        "--hidden-import", "photo_tools_v12_1.scanner_ui",
         "--hidden-import", "photo_tools_v12_1.quality",
         "--hidden-import", "photo_tools_v12_1.utils",
         "--hidden-import", "photo_tools_v12_1.pushplus_client",
