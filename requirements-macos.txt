@@ -1,0 +1,5 @@
+# macOS 专用约束：目标 Apple Silicon + macOS 14+
+# 若开发机是 macOS 13，请把 numpy/scipy/onnxruntime 降到带 macosx_11/12 arm64 轮子的版本
+numpy>=2.1
+scipy>=1.14
+onnxruntime>=1.20

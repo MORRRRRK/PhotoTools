@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *.log
 
+# Python virtualenv
+.venv/
+venv/
+
+# macOS packages
+*.dmg
+*.app/
 # Build output
 build/
 build_installer/

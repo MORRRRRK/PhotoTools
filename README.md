@@ -1,4 +1,8 @@
-# 摄影素材管理工具箱 (PhotoTools V12.0)
+# 摄影素材管理工具箱 (PhotoTools)
+
+> **V13 起项目结构变更**：源码统一放在 src/phototools/，Windows 与 macOS 共用同一份代码与版本号；
+> 构建、macOS 打包与跨平台同步流程见 docs/BUILD_AND_SYNC.md。
+> 旧的 photo_tools_v1 … v13 目录已冻结，仅作历史留存。
 
 一站式处理相机与手机素材：清理残留 RAW/PNG、评估照片/视频质量、为高规格视频生成低码率代理、生成延时摄影，并新增手机动态照片（Live Photo）提取。
 
