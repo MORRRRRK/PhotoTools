@@ -34,3 +34,7 @@ photo_gallery/site/photos.json
 陈大可照片/
 新建文件夹/
 tcl/
+
+# Local UI prototype artifacts
+.playwright-cli/
+output/
