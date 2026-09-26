@@ -1,6 +1,7 @@
 """shell.py - 跨平台打开文件、定位文件与移入回收站"""
 
 import os
+import shutil
 import subprocess
 import sys
 from typing import List, Tuple
@@ -55,20 +56,29 @@ def _trash_windows(path: str) -> bool:
 def _trash_macos(path: str) -> bool:
     escaped = path.replace('"', '\\"')
     script = f'tell application "Finder" to delete POSIX file "{escaped}"'
-    result = subprocess.run(["osascript", "-e", script],
-                            capture_output=True, text=True, timeout=120)
-    if result.returncode == 0:
-        return True
     try:
-        dest = os.path.join(os.path.expanduser("~"), ".Trash", os.path.basename(path))
-        if os.path.exists(dest):
-            base, ext = os.path.splitext(dest)
-            index = 1
-            while os.path.exists(dest):
-                dest = f"{base}-{index}{ext}"
-                index += 1
-        os.rename(path, dest)
-        return True
+        result = subprocess.run(["osascript", "-e", script],
+                                capture_output=True, text=True, timeout=20)
+        if result.returncode == 0 and not os.path.exists(path):
+            return True
+    except Exception as e:
+        print(f"[WARN] Finder 移入废纸篓失败，改用直接移动：{e}")
+    # 回退：直接移动到 ~/.Trash（与 Finder 的“移到废纸篓”等价），
+    # 避免 Finder/AppleEvent 无响应时卸载流程卡死。
+    try:
+        trash_dir = os.path.join(os.path.expanduser("~"), ".Trash")
+        os.makedirs(trash_dir, exist_ok=True)
+        dest = os.path.join(trash_dir, os.path.basename(path))
+        base, ext = os.path.splitext(dest)
+        index = 1
+        while os.path.exists(dest):
+            dest = f"{base}-{index}{ext}"
+            index += 1
+        try:
+            os.rename(path, dest)
+        except OSError:
+            shutil.move(path, dest)
+        return not os.path.exists(path)
     except Exception as e:
         print(f"[ERROR] 移入废纸篓失败: {e}")
         return False

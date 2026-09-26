@@ -44,14 +44,25 @@ def is_installed() -> bool:
 
 
 def app_bundle_path() -> str:
-    if sys.platform == "darwin":
-        if os.path.exists(MAC_INSTALL_PATH):
-            return MAC_INSTALL_PATH
-        exe = os.path.abspath(sys.executable)
-        for parent in (exe, os.path.dirname(exe)):
-            if parent.endswith(".app"):
-                return parent
+    if sys.platform != "darwin":
         return ""
+    if os.path.exists(MAC_INSTALL_PATH):
+        return MAC_INSTALL_PATH
+    # 打包运行时 sys.executable 形如 <X.app>/Contents/MacOS/PhotoTools，
+    # 因此必须逐级向上查找 .app 目录，只比较最后一级是找不到的。
+    candidates = [os.path.abspath(sys.executable)]
+    meipass = getattr(sys, "_MEIPASS", "")
+    if meipass:
+        candidates.append(os.path.abspath(meipass))
+    for candidate in candidates:
+        current = candidate
+        for _ in range(6):
+            parent = os.path.dirname(current)
+            if parent == current:
+                break
+            current = parent
+            if current.endswith(".app") and os.path.isdir(current):
+                return current
     return ""
 
 

@@ -45,11 +45,13 @@ fi
 echo "安装依赖（首次约 3-6 分钟）..."
 .venv/bin/pip install -r requirements.txt
 .venv/bin/pip install -r requirements-macos.txt
+# PyInstaller 只在打包时需要，不放进跨平台运行依赖，这里单独安装。
+.venv/bin/pip install "pyinstaller>=6.0"
 
 .venv/bin/python - <<'PY'
 import importlib.util as u
 import sys
-required = ["PySide6", "cv2", "numpy", "PIL", "rawpy", "onnxruntime", "imageio_ffmpeg", "scipy", "skimage"]
+required = ["PySide6", "cv2", "numpy", "PIL", "rawpy", "onnxruntime", "imageio_ffmpeg", "scipy", "skimage", "PyInstaller"]
 missing = [name for name in required if not u.find_spec(name)]
 if missing:
     print("缺少依赖: " + ", ".join(missing))

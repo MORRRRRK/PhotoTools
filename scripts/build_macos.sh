@@ -24,14 +24,14 @@ echo "使用解释器: $PYTHON"
 if ! "$PYTHON" - <<'PY'
 import importlib.util as u
 import sys
-required = ["PySide6", "cv2", "numpy", "PIL", "rawpy", "onnxruntime", "imageio_ffmpeg", "scipy", "skimage"]
+required = ["PySide6", "cv2", "numpy", "PIL", "rawpy", "onnxruntime", "imageio_ffmpeg", "scipy", "skimage", "PyInstaller"]
 missing = [name for name in required if not u.find_spec(name)]
 if missing:
     print("缺少依赖: " + ", ".join(missing))
     sys.exit(1)
 PY
 then
-  echo "请先安装依赖：$PYTHON -m pip install -r requirements.txt" >&2
+  echo "请先安装依赖（含 PyInstaller）：bash scripts/mac_setup.sh" >&2
   exit 1
 fi
 
