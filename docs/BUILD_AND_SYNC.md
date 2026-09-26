@@ -37,7 +37,15 @@
 
 ## macOS（Apple Silicon）：一次性准备
 
-1. 安装 Python 3.12（python.org 官方安装包即可，**不需要** Homebrew）。
+一键准备（推荐，脚本会检查 Xcode 命令行工具、Python 版本、创建 .venv 并安装依赖）：
+
+    git clone https://github.com/MORRRRRK/PhotoTools.git
+    cd PhotoTools
+    bash scripts/mac_setup.sh
+
+等价的手动步骤：
+
+1. 安装 Python 3.12（python.org 官方安装包即可，**不需要** Homebrew）与 Xcode Command Line Tools（xcode-select --install）。
 2. 在仓库根目录创建虚拟环境并安装依赖：
 
        python3 -m venv .venv
@@ -88,6 +96,10 @@
 - 只修改 src/phototools/_version.py 一处；Windows exe、macOS 的 Info.plist、关于页版本自动一致。
 - 跨平台发版打同一个 git tag，例如 v13.0.0。
 - 平台差异只允许出现在 src/phototools/platform/ 与 packaging/；不要新建平台分支。
+
+## 交给 Mac 上的 Codex 代做
+
+如果不想自己敲命令，可直接把 docs/MAC_HANDOFF.md 里的提示词粘贴到 Mac 版 Codex，它会自己拉代码、装环境、构建并逐项验收。
 
 ## macOS 首版功能范围
 
